@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     container: alpine:edge
     steps:
-    - run: apk --no-cache add git gcc g++ binutils pkgconf meson ninja musl-dev wayland-dev wayland-protocols libinput-dev libevdev-dev libxkbcommon-dev pixman-dev glm-dev libdrm-dev mesa-dev cairo-dev pango-dev eudev-dev libxml2-dev libseat-dev libxcb-dev xcb-util-wm-dev xwayland doctest doctest-dev cmake hwdata
+    - run: apk --no-cache add curl git gcc g++ binutils pkgconf make meson ninja musl-dev wayland-dev wayland-protocols libinput-dev libevdev-dev libxkbcommon-dev pixman-dev glm-dev libdrm-dev mesa-dev cairo-dev pango-dev eudev-dev libxml2-dev libseat-dev libxcb-dev xcb-util-wm-dev xwayland doctest doctest-dev cmake libdisplay-info-dev hwdata-dev
     - uses: actions/checkout@v1
     - run: git config --global --add safe.directory /__w/wayfire/wayfire
     - run: git submodule sync --recursive && git submodule update --init --force --recursive
@@ -29,6 +29,8 @@ jobs:
     - uses: actions/checkout@v1
     - run: git config --global --add safe.directory /__w/wayfire/wayfire
     - run: git submodule sync --recursive && git submodule update --init --force --recursive
+    - run: (git clone https://github.com/vcrhonek/hwdata && cd hwdata && ./configure --prefix=/usr && make && make install)
+    - run: (git clone https://gitlab.freedesktop.org/emersion/libdisplay-info && cd libdisplay-info && meson build --prefix=/usr && ninja -C build install)
     - run: (cd subprojects/wlroots && env CC=clang CXX=clang++ CXXFLAGS="-stdlib=libc++" LDFLAGS="-fuse-ld=lld -stdlib=libc++" meson build --prefix=/usr && ninja -C build install)
     - run: env CC=clang CXX=clang++ CXXFLAGS="-stdlib=libc++" LDFLAGS="-fuse-ld=lld -stdlib=libc++" meson build -Db_pch=true -Duse_system_wlroots=enabled --unity on
     - run: ninja -v -Cbuild

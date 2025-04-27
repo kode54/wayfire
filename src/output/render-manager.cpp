@@ -120,10 +120,8 @@ struct swapchain_damage_manager_t
         on_damage.set_callback([&] (void *data)
         {
             auto ev = static_cast<wlr_output_event_damage*>(data);
-            if (wlr_damage_ring_add(&damage_ring, ev->damage))
-            {
-                schedule_repaint();
-            }
+            wlr_damage_ring_add(&damage_ring, ev->damage);
+            schedule_repaint();
         });
 
         on_request_state.set_callback([=] (void *data)

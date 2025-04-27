@@ -194,7 +194,8 @@ class wayfire_xwayland_view : public wf::toplevel_view_interface_t, public wayfi
         on_request_maximize.set_callback([&] (void*)
         {
             wf::get_core().default_wm->tile_request({this},
-                (xw->maximized_horz && xw->maximized_vert) ? wf::TILED_EDGES_ALL : 0);
+                (xw->maximized_horz ? (WLR_EDGE_LEFT | WLR_EDGE_RIGHT) : 0) |
+                (xw->maximized_vert ? (WLR_EDGE_TOP | WLR_EDGE_BOTTOM) : 0));
         });
         on_request_fullscreen.set_callback([&] (void*)
         {

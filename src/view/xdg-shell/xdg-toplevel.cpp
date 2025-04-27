@@ -189,8 +189,7 @@ void wf::xdg_toplevel_t::handle_surface_commit()
     {
         if (toplevel)
         {
-            wlr_box wm_box;
-            wlr_xdg_surface_get_geometry(toplevel->base, &wm_box);
+            wlr_box wm_box = toplevel->base->geometry;
 
             if (this->wm_offset != wf::origin(wm_box))
             {
@@ -235,9 +234,7 @@ void wf::xdg_toplevel_t::apply_pending_state()
 
     if (toplevel)
     {
-        wlr_box wm_box;
-        wlr_xdg_surface_get_geometry(toplevel->base, &wm_box);
-        this->wm_offset = wf::origin(wm_box);
+        this->wm_offset = wf::origin(toplevel->base->geometry);
     }
 }
 
@@ -253,9 +250,7 @@ void wf::xdg_toplevel_t::emit_ready()
 wf::dimensions_t wf::xdg_toplevel_t::get_current_wlr_toplevel_size()
 {
     // Size did change => Start a new transaction to change the size.
-    wlr_box wm_box;
-    wlr_xdg_surface_get_geometry(toplevel->base, &wm_box);
-    return wf::dimensions(wm_box);
+    return wf::dimensions(toplevel->base->geometry);
 }
 
 wf::dimensions_t wf::xdg_toplevel_t::get_min_size()

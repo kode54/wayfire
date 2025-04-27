@@ -518,7 +518,8 @@ void wf::xdg_toplevel_view_t::start_map_tx()
 {
     LOGC(VIEWS, "Start mapping ", self());
     wlr_box box;
-    wlr_xdg_surface_get_geometry(xdg_toplevel->base, &box);
+    box.width = xdg_toplevel->base->geometry.width;
+    box.height = xdg_toplevel->base->geometry.height;
 
     auto margins = wtoplevel->pending().margins;
     box.x = wtoplevel->pending().geometry.x + margins.left;

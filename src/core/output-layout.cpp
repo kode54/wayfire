@@ -746,9 +746,8 @@ struct output_layout_output_t
     /** Render the output using texture as source */
     void render_output(wlr_texture *texture)
     {
-        int buffer_age;
         struct wlr_render_pass *pass = wlr_output_begin_render_pass(handle, &pending_state.pending,
-            &buffer_age, NULL);
+            NULL);
         if (pass == NULL)
         {
             return;

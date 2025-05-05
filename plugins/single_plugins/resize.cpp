@@ -315,27 +315,34 @@ class wayfire_resize : public wf::per_output_plugin_instance_t, public wf::point
     {
         // Max size is whatever is set by the client, if not set, then it is MAX_INT
         wf::dimensions_t max_size = view->toplevel()->get_max_size();
+        int64_t width, height;
         if (max_size.width > 0)
         {
-            max_size.width += view->toplevel()->pending().margins.left +
+            width = static_cast<int64_t>(max_size.width) +
+                view->toplevel()->pending().margins.left +
                 view->toplevel()->pending().margins.right;
         } else
         {
-            max_size.width = std::numeric_limits<decltype(max_size.width)>::max();
+            width = std::numeric_limits<decltype(max_size.width)>::max();
         }
 
         if (max_size.height > 0)
         {
-            max_size.height += view->toplevel()->pending().margins.top +
+            height = static_cast<int64_t>(max_size.height) +
+                view->toplevel()->pending().margins.top +
                 view->toplevel()->pending().margins.bottom;
         } else
         {
-            max_size.height = std::numeric_limits<decltype(max_size.height)>::max();
+            height = std::numeric_limits<decltype(max_size.height)>::max();
         }
 
         // Sanitize values in case desired.width/height gets negative for example.
-        max_size.width  = std::max(max_size.width, min.width);
-        max_size.height = std::max(max_size.height, min.height);
+        max_size.width = static_cast<decltype(max_size.width)>(std::clamp(width,
+            static_cast<int64_t>(min.width),
+            static_cast<int64_t>(std::numeric_limits<decltype(max_size.width)>::max())));
+        max_size.height = static_cast<decltype(max_size.height)>(std::clamp(height,
+            static_cast<int64_t>(min.height),
+            static_cast<int64_t>(std::numeric_limits<decltype(max_size.height)>::max())));
 
         return max_size;
     }

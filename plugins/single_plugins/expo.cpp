@@ -1,18 +1,18 @@
-#include "wayfire/plugins/common/input-grab.hpp"
-#include "wayfire/plugins/common/util.hpp"
-#include "plugins/ipc/ipc-activator.hpp"
-#include "wayfire/render-manager.hpp"
-#include "wayfire/scene-input.hpp"
-#include "wayfire/scene.hpp"
-#include "wayfire/signal-definitions.hpp"
-#include "wayfire/view.hpp"
+#include <wayfire/plugins/common/input-grab.hpp>
+#include <wayfire/plugins/common/util.hpp>
+#include <wayfire/plugins/ipc/ipc-activator.hpp>
+#include <wayfire/render-manager.hpp>
+#include <wayfire/scene-input.hpp>
+#include <wayfire/scene.hpp>
+#include <wayfire/signal-definitions.hpp>
+#include <wayfire/view.hpp>
 #include <memory>
 #include <wayfire/per-output-plugin.hpp>
 #include <wayfire/output.hpp>
 #include <wayfire/core.hpp>
 #include <wayfire/output-layout.hpp>
 #include <wayfire/debug.hpp>
-#include "wayfire/plugins/wobbly/wobbly-signal.hpp"
+#include <wayfire/plugins/wobbly/wobbly-signal.hpp>
 
 #include <wayfire/plugins/common/workspace-wall.hpp>
 #include <wayfire/plugins/common/geometry-animation.hpp>

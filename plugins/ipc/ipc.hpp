@@ -4,7 +4,7 @@
 #include <wayfire/object.hpp>
 #include <wayland-server.h>
 #include <wayfire/plugins/common/shared-core-data.hpp>
-#include "ipc-method-repository.hpp"
+#include <wayfire/plugins/ipc/ipc-method-repository.hpp>
 
 namespace wf
 {

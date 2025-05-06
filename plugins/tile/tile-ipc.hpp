@@ -4,8 +4,8 @@
 #include <wayfire/workspace-set.hpp>
 #include <wayfire/toplevel-view.hpp>
 #include "tree.hpp"
-#include "plugins/ipc/ipc-helpers.hpp"
-#include "plugins/ipc/ipc-method-repository.hpp"
+#include <wayfire/plugins/ipc/ipc-helpers.hpp>
+#include <wayfire/plugins/ipc/ipc-method-repository.hpp>
 #include "tile-wset.hpp"
 
 namespace wf

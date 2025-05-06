@@ -24,7 +24,7 @@
 
 #include <linux/input-event-codes.h>
 
-#include "plugins/ipc/ipc-activator.hpp"
+#include <wayfire/plugins/ipc/ipc-activator.hpp>
 #include "scale.hpp"
 #include "scale-title-overlay.hpp"
 #include "wayfire/core.hpp"

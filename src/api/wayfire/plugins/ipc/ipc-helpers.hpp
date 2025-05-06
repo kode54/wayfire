@@ -1,14 +1,14 @@
 #pragma once
 
 #include <wayfire/nonstd/json.hpp>
-#include "wayfire/geometry.hpp"
+#include <wayfire/geometry.hpp>
 #include <wayfire/output.hpp>
 #include <wayfire/view.hpp>
 #include <wayfire/workspace-set.hpp>
 #include <wayfire/core.hpp>
 #include <wayfire/output-layout.hpp>
 #include <wayfire/core.hpp>
-#include "ipc-method-repository.hpp"
+#include <wayfire/plugins/ipc/ipc-method-repository.hpp>
 
 namespace wf
 {

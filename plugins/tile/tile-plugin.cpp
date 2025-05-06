@@ -8,21 +8,21 @@
 #include <wayfire/signal-definitions.hpp>
 #include <wayfire/toplevel-view.hpp>
 
-#include "plugins/ipc/ipc-method-repository.hpp"
+#include <wayfire/plugins/ipc/ipc-method-repository.hpp>
 #include "tree-controller.hpp"
 #include "tree.hpp"
-#include "wayfire/debug.hpp"
-#include "wayfire/geometry.hpp"
-#include "wayfire/object.hpp"
-#include "wayfire/option-wrapper.hpp"
-#include "wayfire/plugin.hpp"
-#include "wayfire/plugins/common/input-grab.hpp"
-#include "wayfire/plugins/common/shared-core-data.hpp"
-#include "wayfire/scene-input.hpp"
-#include "wayfire/scene.hpp"
-#include "wayfire/signal-provider.hpp"
-#include "wayfire/toplevel-view.hpp"
-#include "wayfire/view.hpp"
+#include <wayfire/debug.hpp>
+#include <wayfire/geometry.hpp>
+#include <wayfire/object.hpp>
+#include <wayfire/option-wrapper.hpp>
+#include <wayfire/plugin.hpp>
+#include <wayfire/plugins/common/input-grab.hpp>
+#include <wayfire/plugins/common/shared-core-data.hpp>
+#include <wayfire/scene-input.hpp>
+#include <wayfire/scene.hpp>
+#include <wayfire/signal-provider.hpp>
+#include <wayfire/toplevel-view.hpp>
+#include <wayfire/view.hpp>
 
 #include "tile-wset.hpp"
 #include "tile-ipc.hpp"

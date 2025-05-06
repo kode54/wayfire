@@ -1,10 +1,10 @@
 #pragma once
-#include "plugins/ipc/ipc-helpers.hpp"
+#include <wayfire/plugins/ipc/ipc-helpers.hpp>
 #include <wayfire/output.hpp>
 #include <wayfire/workarea.hpp>
 #include <wayfire/workspace-set.hpp>
 #include "config.h"
-#include "wayfire/plugins/common/util.hpp"
+#include <wayfire/plugins/common/util.hpp>
 #include <wayfire/nonstd/wlroots-full.hpp>
 #include <wayfire/unstable/wlr-surface-node.hpp>
 #include <wayfire/view-helpers.hpp>

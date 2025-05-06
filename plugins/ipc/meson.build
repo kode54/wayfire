@@ -15,5 +15,3 @@ stipc = shared_module('stipc',
     dependencies: [wlroots, pixman, wfconfig, wftouch, json, evdev, plugin_pch_dep],
     install: true,
     install_dir: conf_data.get('PLUGIN_PATH'))
-
-install_headers(['ipc-method-repository.hpp', 'ipc-helpers.hpp', 'ipc-activator.hpp'], subdir: 'wayfire/plugins/ipc')

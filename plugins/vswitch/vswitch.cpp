@@ -1,15 +1,15 @@
-#include "plugins/ipc/ipc-helpers.hpp"
-#include "wayfire/core.hpp"
+#include <wayfire/plugins/ipc/ipc-helpers.hpp>
+#include <wayfire/core.hpp>
 #include <wayfire/plugins/vswitch.hpp>
 #include <wayfire/per-output-plugin.hpp>
 #include <linux/input.h>
 #include <wayfire/util/log.hpp>
 #include <wayfire/seat.hpp>
-#include "plugins/ipc/ipc-method-repository.hpp"
-#include "wayfire/plugins/common/shared-core-data.hpp"
-#include "wayfire/unstable/translation-node.hpp"
-#include "wayfire/scene-operations.hpp"
-#include "wayfire/render-manager.hpp"
+#include <wayfire/plugins/ipc/ipc-method-repository.hpp>
+#include <wayfire/plugins/common/shared-core-data.hpp>
+#include <wayfire/unstable/translation-node.hpp>
+#include <wayfire/scene-operations.hpp>
+#include <wayfire/render-manager.hpp>
 
 namespace wf
 {

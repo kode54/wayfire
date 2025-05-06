@@ -4,11 +4,11 @@
 #include <wayfire/toplevel-view.hpp>
 #include <wayfire/seat.hpp>
 
-#include "plugins/ipc/ipc-helpers.hpp"
-#include "plugins/ipc/ipc-method-repository.hpp"
-#include "wayfire/core.hpp"
-#include "wayfire/plugins/common/shared-core-data.hpp"
-#include "wayfire/window-manager.hpp"
+#include <wayfire/plugins/ipc/ipc-helpers.hpp>
+#include <wayfire/plugins/ipc/ipc-method-repository.hpp>
+#include <wayfire/core.hpp>
+#include <wayfire/plugins/common/shared-core-data.hpp>
+#include <wayfire/window-manager.hpp>
 #include <wayfire/debug.hpp>
 
 #include "ipc-rules-common.hpp"

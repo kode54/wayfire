@@ -8,13 +8,13 @@
 #include <memory>
 #include <wayfire/plugin.hpp>
 
-#include "wayfire/output.hpp"
-#include "wayfire/core.hpp"
-#include "wayfire/output-layout.hpp"
-#include "wayfire/render-manager.hpp"
+#include <wayfire/output.hpp>
+#include <wayfire/core.hpp>
+#include <wayfire/output-layout.hpp>
+#include <wayfire/render-manager.hpp>
 #include "wayfire-shell-unstable-v2-protocol.h"
-#include "wayfire/signal-definitions.hpp"
-#include "plugins/ipc/ipc-activator.hpp"
+#include <wayfire/signal-definitions.hpp>
+#include <wayfire/plugins/ipc/ipc-activator.hpp>
 
 /* ----------------------------- wfs_hotspot -------------------------------- */
 static void handle_hotspot_destroy(wl_resource *resource);

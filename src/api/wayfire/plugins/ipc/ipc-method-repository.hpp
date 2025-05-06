@@ -2,7 +2,7 @@
 
 #include <functional>
 #include <map>
-#include "wayfire/signal-provider.hpp"
+#include <wayfire/signal-provider.hpp>
 #include <wayfire/nonstd/json.hpp>
 #include <string>
 

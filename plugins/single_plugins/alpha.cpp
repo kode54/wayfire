@@ -29,11 +29,11 @@
 #include <wayfire/output.hpp>
 #include <wayfire/output-layout.hpp>
 #include <wayfire/bindings-repository.hpp>
-#include "wayfire/plugins/common/shared-core-data.hpp"
-#include "wayfire/view-helpers.hpp"
-#include "wayfire/view-transform.hpp"
-#include "plugins/ipc/ipc-helpers.hpp"
-#include "plugins/ipc/ipc-method-repository.hpp"
+#include <wayfire/plugins/common/shared-core-data.hpp>
+#include <wayfire/view-helpers.hpp>
+#include <wayfire/view-transform.hpp>
+#include <wayfire/plugins/ipc/ipc-helpers.hpp>
+#include <wayfire/plugins/ipc/ipc-method-repository.hpp>
 
 class wayfire_alpha : public wf::plugin_interface_t
 {

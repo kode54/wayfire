@@ -9,7 +9,7 @@
 #include <wayfire/workspace-set.hpp>
 #include <wayfire/scene-operations.hpp>
 #include <wayfire/plugins/common/input-grab.hpp>
-#include "plugins/ipc/ipc-activator.hpp"
+#include <wayfire/plugins/ipc/ipc-activator.hpp>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <wayfire/img.hpp>

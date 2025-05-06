@@ -7,17 +7,17 @@
 #include <wayfire/render-manager.hpp>
 #include <cmath>
 #include <linux/input-event-codes.h>
-#include "wayfire/plugin.hpp"
-#include "wayfire/signal-definitions.hpp"
+#include <wayfire/plugin.hpp>
+#include <wayfire/signal-definitions.hpp>
 #include <wayfire/plugins/common/geometry-animation.hpp>
-#include "wayfire/plugins/grid.hpp"
-#include "wayfire/plugins/crossfade.hpp"
+#include <wayfire/plugins/grid.hpp>
+#include <wayfire/plugins/crossfade.hpp>
 #include <wayfire/window-manager.hpp>
 
 #include <wayfire/plugins/wobbly/wobbly-signal.hpp>
 #include <wayfire/view-transform.hpp>
-#include "plugins/ipc/ipc-activator.hpp"
-#include "wayfire/signal-provider.hpp"
+#include <wayfire/plugins/ipc/ipc-activator.hpp>
+#include <wayfire/signal-provider.hpp>
 
 const std::string grid_view_id = "grid-view";
 

@@ -3,22 +3,22 @@
 #include <wayfire/output.hpp>
 #include <wayfire/workspace-set.hpp>
 #include <wayfire/util/log.hpp>
-#include "plugins/common/wayfire/plugins/common/shared-core-data.hpp"
-#include "plugins/ipc/ipc-method-repository.hpp"
-#include "plugins/ipc/ipc-helpers.hpp"
-#include "plugins/ipc/ipc-activator.hpp"
-#include "wayfire/core.hpp"
-#include "wayfire/plugin.hpp"
-#include "wayfire/scene-operations.hpp"
-#include "wayfire/scene.hpp"
-#include "wayfire/signal-definitions.hpp"
-#include "wayfire/signal-provider.hpp"
-#include "wayfire/toplevel-view.hpp"
-#include "wayfire/window-manager.hpp"
-#include "wayfire/seat.hpp"
-#include "wayfire/nonstd/reverse.hpp"
+#include <wayfire/plugins/common/shared-core-data.hpp>
+#include <wayfire/plugins/ipc/ipc-method-repository.hpp>
+#include <wayfire/plugins/ipc/ipc-helpers.hpp>
+#include <wayfire/plugins/ipc/ipc-activator.hpp>
+#include <wayfire/core.hpp>
+#include <wayfire/plugin.hpp>
+#include <wayfire/scene-operations.hpp>
+#include <wayfire/scene.hpp>
+#include <wayfire/signal-definitions.hpp>
+#include <wayfire/signal-provider.hpp>
+#include <wayfire/toplevel-view.hpp>
+#include <wayfire/window-manager.hpp>
+#include <wayfire/seat.hpp>
+#include <wayfire/nonstd/reverse.hpp>
 #include "wm-actions-signals.hpp"
-#include "wayfire/nonstd/reverse.hpp"
+#include <wayfire/nonstd/reverse.hpp>
 
 class always_on_top_root_node_t : public wf::scene::output_node_t
 {

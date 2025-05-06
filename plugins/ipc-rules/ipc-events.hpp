@@ -2,8 +2,8 @@
 
 #include "ipc-rules-common.hpp"
 #include <set>
-#include "plugins/ipc/ipc-method-repository.hpp"
-#include "wayfire/seat.hpp"
+#include <wayfire/plugins/ipc/ipc-method-repository.hpp>
+#include <wayfire/seat.hpp>
 #include <wayfire/per-output-plugin.hpp>
 
 namespace wf

@@ -267,7 +267,7 @@ void wf::compositor_core_impl_t::init()
         cm_options.features.set_mastering_display_primaries = true;
         cm_options.render_intents     = render_intents;
         cm_options.render_intents_len = sizeof(render_intents) / sizeof(render_intents[0]);
-        cm_options.transfer_functions     = transfer_functions;
+        cm_options.transfer_functions = transfer_functions;
         cm_options.transfer_functions_len = transfer_functions_len;
         cm_options.primaries     = primaries;
         cm_options.primaries_len = primaries_len;

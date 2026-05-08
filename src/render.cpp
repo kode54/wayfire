@@ -50,8 +50,13 @@ static float compute_luminance_multiplier(wlr_color_transfer_function source_tf,
 
 static float float_max(float a, float b)
 {
-    if (a > b) return a;
-    else return b;
+    if (a > b)
+    {
+        return a;
+    } else
+    {
+        return b;
+    }
 }
 
 static float gamma22_to_linear(float c)
@@ -67,7 +72,7 @@ static float linear_to_gamma22(float c)
 static wlr_render_color color_to_render_color(const wf::color_t& color,
     wlr_color_transfer_function target_tf)
 {
-    if(!is_hdr_transfer_function(target_tf))
+    if (!is_hdr_transfer_function(target_tf))
     {
         return wlr_render_color{
             .r = static_cast<float>(color.r),

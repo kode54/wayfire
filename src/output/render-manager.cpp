@@ -1129,7 +1129,7 @@ class wf::render_manager::impl
             wf::render_target_t linear_target{linear_intermediate.get_renderbuffer()};
             linear_target.geometry     = post_target.geometry;
             linear_target.wl_transform = post_target.wl_transform;
-            linear_target.scale = post_target.scale;
+            linear_target.scale     = post_target.scale;
             linear_target.subbuffer = post_target.subbuffer;
             // The FP16 intermediate must store SDR-relative linear values verbatim. wlroots
             // treats color_transform == NULL as a request for its default gamma 2.2
@@ -1164,7 +1164,8 @@ class wf::render_manager::impl
         params.renderer = output->handle->renderer;
         params.flags    = RPASS_CLEAR_BACKGROUND | RPASS_EMIT_SIGNALS;
 
-        pass_opts.timer    = NULL; // TODO: do we care about this? could be useful for dynamic frame scheduling
+        pass_opts.timer    = NULL; // TODO: do we care about this? could be useful for dynamic frame
+                                   // scheduling
         params.pass_opts   = std::move(pass_opts);
         this->current_pass = std::make_unique<render_pass_t>(params);
 
@@ -1224,8 +1225,8 @@ class wf::render_manager::impl
         auto linear_tex = wf::texture_t::from_aux(linear_intermediate);
 
         wf::render_pass_params_t params{};
-        params.target = encode_target;
-        params.damage = fb_swap_damage; // already in buffer-local coords == identity geometry
+        params.target   = encode_target;
+        params.damage   = fb_swap_damage; // already in buffer-local coords == identity geometry
         params.renderer = output->handle->renderer;
         params.flags    = 0; // no clear, no signals — single composite into the output
 

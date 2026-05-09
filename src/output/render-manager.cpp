@@ -811,48 +811,12 @@ class wf::render_manager::impl
     wf::option_wrapper_t<std::string> icc_profile;
     wf::option_wrapper_t<bool> hdr;
 
-    // Per-output FP16 linear intermediate. The whole scene composites into this buffer in
-    // the SDR-relative linear domain (1.0 = SDR reference white, 203 nits). A second pass
-    // encodes it to the actual output by applying the output's inverse-EOTF (and ICC if
-    // configured), with the appropriate luminance scale derived from the source/target
-    // transfer functions.
-    //
-    // Only used with the Vulkan renderer: the wlroots GLES2 renderer does not reliably
-    // support FP16 render targets or the inverse-EOTF color transforms required to drive
-    // HDR. On GLES2 we fall back to the original single-pass pipeline (see paint()).
-    wf::auxilliary_buffer_t linear_intermediate;
-    bool use_linear_pipeline = false;
-
     /**
      * The inverse-EOTF transform that matches the output's currently-committed image description.
      * Cached so that it is not recreated each frame.
      */
     wlr_color_transform *output_inverse_eotf = nullptr;
     wlr_color_transfer_function output_inverse_eotf_tf = (wlr_color_transfer_function)0;
-
-    /**
-     * Identity (linear → linear) color transform for the FP16 linear intermediate pass.
-     * Without this, wlroots treats a NULL color_transform on the pass as a request for the
-     * default gamma 2.2 inverse-EOTF (see render.hpp on render_target_t::get_color_transform),
-     * which would gamma-encode the values we want to keep linear.
-     */
-    wlr_color_transform *linear_passthrough_transform = nullptr;
-
-    wlr_color_transform *get_linear_passthrough_transform()
-    {
-        if (!linear_passthrough_transform)
-        {
-            linear_passthrough_transform = wlr_color_transform_init_linear_to_inverse_eotf(
-                WLR_COLOR_TRANSFER_FUNCTION_EXT_LINEAR);
-            if (!linear_passthrough_transform)
-            {
-                LOGE("Failed to create linear-passthrough color transform for output ",
-                    output->to_string());
-            }
-        }
-
-        return linear_passthrough_transform;
-    }
 
     /**
      * The transfer function the output expects in its committed image description, or sRGB if no
@@ -1036,12 +1000,6 @@ class wf::render_manager::impl
             wlr_color_transform_unref(output_inverse_eotf);
             output_inverse_eotf = nullptr;
         }
-
-        if (linear_passthrough_transform)
-        {
-            wlr_color_transform_unref(linear_passthrough_transform);
-            linear_passthrough_transform = nullptr;
-        }
     }
 
     const bool env_allow_scanout;
@@ -1116,46 +1074,16 @@ class wf::render_manager::impl
         render_pass_params_t params;
         params.instances = &damage_manager->instance_manager->get_instances();
 
-        if (use_linear_pipeline)
-        {
-            // Render the scene into the linear intermediate. The intermediate's geometry,
-            // wl_transform, and scale match the post-target so that scene-instance code
-            // observes identical coordinate mapping; only the backing buffer and target color
-            // space differ. The encode_linear_to_output() pass below converts this linear
-            // buffer to the output's transfer function in a single, unified step.
-            auto post_target = postprocessing->get_target_framebuffer().translated(
-                wf::origin(output->get_layout_geometry()));
-
-            wf::render_target_t linear_target{linear_intermediate.get_renderbuffer()};
-            linear_target.geometry     = post_target.geometry;
-            linear_target.wl_transform = post_target.wl_transform;
-            linear_target.scale     = post_target.scale;
-            linear_target.subbuffer = post_target.subbuffer;
-            // The FP16 intermediate must store SDR-relative linear values verbatim. wlroots
-            // treats color_transform == NULL as a request for its default gamma 2.2
-            // encoding, which would silently gamma-encode the buffer; pass an explicit
-            // identity (linear → linear) transform instead. Setting the target's transfer
-            // function to EXT_LINEAR makes render_pass_t::add_texture compute the right
-            // per-source luminance multiplier (SDR sources pass through; PQ sources scale
-            // up by ~49.26 to land in the same SDR-relative domain).
-            linear_target.set_color_transform(get_linear_passthrough_transform(),
-                WLR_COLOR_TRANSFER_FUNCTION_EXT_LINEAR);
-
-            params.target = linear_target;
-            pass_opts.color_transform = get_linear_passthrough_transform();
-        } else
-        {
-            // GLES2 fallback: render directly to the postprocessing/output target with the
-            // output's inverse-EOTF applied, as on the original hdr-fixes single-pass
-            // pipeline. SDR/HDR luminance bridging still happens via the per-texture
-            // multiplier in render_pass_t::add_texture, driven by the target's transfer
-            // function.
-            params.target = postprocessing->get_target_framebuffer().translated(
-                wf::origin(output->get_layout_geometry()));
-            params.target.set_color_transform(params.target.get_color_transform(),
-                get_output_transfer_function());
-            pass_opts.color_transform = get_color_transform();
-        }
+        // Render directly to the output target. wlroots' Vulkan renderer already runs a
+        // two-pass pipeline internally — it composites every add_texture into an FP16
+        // linear blend image and applies the inverse-EOTF (or ICC LUT) selected by
+        // pass_opts.color_transform when writing to the output buffer. The target's
+        // transfer function only drives the per-source luminance multiplier in
+        // render_pass_t::add_texture (e.g. 0.0203 for SDR-into-PQ).
+        params.target = postprocessing->get_target_framebuffer().translated(
+            wf::origin(output->get_layout_geometry()));
+        params.target.set_color_transform(get_color_transform(), get_output_transfer_function());
+        pass_opts.color_transform = get_color_transform();
 
         params.damage = damage_manager->get_scheduled_damage(params.target);
 
@@ -1186,90 +1114,11 @@ class wf::render_manager::impl
         return total_damage;
     }
 
-    /**
-     * Encode the linear scene intermediate to the postprocessing/output target by running
-     * a single full-buffer render pass with the output's inverse-EOTF (and ICC profile if
-     * configured) applied. The per-source luminance multiplier in
-     * render_pass_t::add_texture handles the linear→output domain bridge:
-     *  - SDR output: 1.0 (linear values pass through to sRGB/gamma2.2 inverse-EOTF)
-     *  - HDR output: 0.0203 (linear SDR-relative scaled to PQ-linear)
-     */
-    void encode_linear_to_output(const wf::region_t& fb_swap_damage)
-    {
-        if (!linear_intermediate.get_buffer())
-        {
-            LOGE("Linear intermediate not allocated; skipping encode pass.");
-            return;
-        }
-
-        auto post_target = postprocessing->get_target_framebuffer();
-        auto buffer_size = post_target.get_size();
-        if (linear_intermediate.get_size() != buffer_size)
-        {
-            LOGE("Linear intermediate size ", linear_intermediate.get_size(),
-                " mismatches output buffer size ", buffer_size, "; skipping encode pass.");
-            return;
-        }
-
-        // The encode is a 1:1 pixel copy — output transform/scale were already baked into
-        // the linear intermediate during the scene pass. Use an identity render target so
-        // the texture is sampled directly without further transformation.
-        wf::render_target_t encode_target{
-            static_cast<const wf::render_buffer_t&>(post_target)};
-        encode_target.geometry     = {0, 0, buffer_size.width, buffer_size.height};
-        encode_target.wl_transform = WL_OUTPUT_TRANSFORM_NORMAL;
-        encode_target.scale = 1.0;
-        encode_target.set_color_transform(get_color_transform(),
-            get_output_transfer_function());
-
-        auto linear_tex = wf::texture_t::from_aux(linear_intermediate);
-
-        wf::render_pass_params_t params{};
-        params.target   = encode_target;
-        params.damage   = fb_swap_damage; // already in buffer-local coords == identity geometry
-        params.renderer = output->handle->renderer;
-        params.flags    = 0; // no clear, no signals — single composite into the output
-
-        wf::render_pass_t pass{params};
-        // run_partial() arms the lazy wlr_render_pass creation. With no instances and
-        // no flags, it does nothing else — but without it, add_texture's call into
-        // get_wlr_pass() returns NULL and wlroots crashes on a null render pass.
-        pass.run_partial();
-        pass.add_texture(linear_tex, encode_target,
-            encode_target.geometry, params.damage, 1.0f);
-        if (!pass.submit())
-        {
-            LOGE("Failed to submit encode-to-output render pass!");
-        }
-    }
-
     void update_bound_output(wlr_buffer *buffer)
     {
         /* Make sure the default buffer has enough size */
         postprocessing->allocate(output->handle->width, output->handle->height);
         postprocessing->set_current_buffer(buffer);
-
-        // Allocate the linear scene intermediate when running on a renderer that supports
-        // FP16 render targets and the inverse-EOTF color transforms HDR needs. On the
-        // GLES2 renderer we keep the original single-pass pipeline (see start_output_pass).
-        if (!wf::get_core().is_gles2())
-        {
-            wf::buffer_allocation_hints_t hints;
-            hints.needs_alpha = true;
-            hints.hdr_linear  = true;
-            auto result = linear_intermediate.allocate(
-                {output->handle->width, output->handle->height}, 1.0f, hints);
-            use_linear_pipeline = (result != wf::buffer_reallocation_result_t::FAILED);
-            if (!use_linear_pipeline)
-            {
-                LOGE("Failed to allocate linear HDR intermediate for output ",
-                    output->to_string(), "; falling back to single-pass rendering.");
-            }
-        } else
-        {
-            use_linear_pipeline = false;
-            linear_intermediate.free();
-        }
 
         if (wf::get_core().is_gles2())
         {
@@ -1330,13 +1179,6 @@ class wf::render_manager::impl
             LOGE("Failed to submit render pass!");
             wlr_buffer_unlock(next_frame->buffer);
             return;
-        }
-
-        if (use_linear_pipeline)
-        {
-            // Stage 2: encode the linear intermediate into the actual output buffer with
-            // the output's inverse-EOTF (and ICC profile if configured).
-            encode_linear_to_output(this->swap_damage);
         }
 
         effects->run_effects(OUTPUT_EFFECT_PASS_DONE);

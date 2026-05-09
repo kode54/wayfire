@@ -1164,8 +1164,8 @@ class wf::render_manager::impl
         params.renderer = output->handle->renderer;
         params.flags    = RPASS_CLEAR_BACKGROUND | RPASS_EMIT_SIGNALS;
 
-        pass_opts.timer    = NULL; // TODO: do we care about this? could be useful for dynamic frame
-                                   // scheduling
+        pass_opts.timer = NULL; // TODO: do we care about this? could be useful for dynamic frame
+                                // scheduling
         params.pass_opts   = std::move(pass_opts);
         this->current_pass = std::make_unique<render_pass_t>(params);
 

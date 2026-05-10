@@ -50,6 +50,14 @@ class wayfire_cube : public wf::per_output_plugin_instance_t, public wf::pointer
             std::vector<wf::region_t> ws_damage;
             std::vector<wf::auxilliary_buffer_t> framebuffers;
 
+            // Full-output intermediate that cube renders the cube + background into. The buffer is
+            // composited to data.target via wlr_render_pass_add_texture, so wlroots handles the
+            // EXT_LINEAR -> output-transfer-function conversion (and the SDR<->PQ luminance bridge
+            // on HDR outputs) instead of cube's custom shader writing whatever it produces straight
+            // into the output's bound FBO. With wlroots GLES2's linear two-pass pipeline the output
+            // FBO is FP16 linear, and writing display-encoded values into it produced wrong colors.
+            wf::auxilliary_buffer_t cube_render_buffer;
+
             wf::signal::connection_t<wf::scene::node_damage_signal> on_cube_damage =
                 [=] (wf::scene::node_damage_signal *ev)
             {
@@ -125,7 +133,47 @@ class wayfire_cube : public wf::per_output_plugin_instance_t, public wf::pointer
 
             void render(const wf::scene::render_instruction_t& data) override
             {
-                self->cube->render(data, framebuffers);
+                // Allocate the cube's intermediate buffer matching data.target's size (which has
+                // already been translated to origin by schedule_instructions). hdr_linear so HDR
+                // contents above SDR reference white aren't clipped by an 8-bit linear backing.
+                const auto *img_desc = self->cube->output->handle->image_description;
+                const bool is_hdr    = img_desc &&
+                    img_desc->transfer_function == WLR_COLOR_TRANSFER_FUNCTION_ST2084_PQ;
+
+                cube_render_buffer.allocate(wf::dimensions(data.target.geometry), data.target.scale,
+                    wf::buffer_allocation_hints_t{.hdr_linear = is_hdr});
+
+                wf::render_target_t aux_target{cube_render_buffer};
+                aux_target.geometry     = data.target.geometry;
+                aux_target.scale        = data.target.scale;
+                aux_target.wl_transform = data.target.wl_transform;
+                aux_target.subbuffer    = data.target.subbuffer;
+
+                // Run a fresh pass into the cube buffer. cube->render uses
+                // data.pass->custom_gles_subpass which binds the pass's target FBO, so we need a
+                // pass whose params.target is the aux buffer rather than data.target's output FBO.
+                wf::render_pass_params_t params;
+                params.target  = aux_target;
+                params.damage  = data.damage;
+                params.flags   = wf::RPASS_CLEAR_BACKGROUND;
+                params.background_color = {0, 0, 0, 0};
+                params.renderer = self->cube->output->handle->renderer;
+
+                wf::render_pass_t aux_pass{params};
+                aux_pass.run_partial();
+
+                wf::scene::render_instruction_t aux_data{};
+                aux_data.pass   = &aux_pass;
+                aux_data.target = aux_target;
+                aux_data.damage = data.damage;
+                self->cube->render(aux_data, framebuffers);
+
+                aux_pass.submit();
+
+                // Composite the cube buffer onto the actual output target via wlroots'
+                // tex_rgba_cm path, which handles the per-source EOTF and luminance multiplier.
+                auto cube_tex = wf::texture_t::from_aux(cube_render_buffer);
+                data.pass->add_texture(cube_tex, data.target, data.target.geometry, data.damage);
             }
 
             void compute_visibility(wf::output_t *output, wf::region_t& visible) override

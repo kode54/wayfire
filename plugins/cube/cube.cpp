@@ -150,8 +150,8 @@ class wayfire_cube : public wf::per_output_plugin_instance_t, public wf::pointer
                     wf::buffer_allocation_hints_t{.hdr_linear = is_hdr});
 
                 wf::render_target_t aux_target{cube_render_buffer};
-                aux_target.geometry     = data.target.geometry;
-                aux_target.scale        = data.target.scale;
+                aux_target.geometry = data.target.geometry;
+                aux_target.scale    = data.target.scale;
                 aux_target.wl_transform = data.target.wl_transform;
                 aux_target.subbuffer    = data.target.subbuffer;
 
@@ -159,9 +159,9 @@ class wayfire_cube : public wf::per_output_plugin_instance_t, public wf::pointer
                 // data.pass->custom_gles_subpass which binds the pass's target FBO, so we need a
                 // pass whose params.target is the aux buffer rather than data.target's output FBO.
                 wf::render_pass_params_t params;
-                params.target  = aux_target;
-                params.damage  = data.damage;
-                params.flags   = wf::RPASS_CLEAR_BACKGROUND;
+                params.target = aux_target;
+                params.damage = data.damage;
+                params.flags  = wf::RPASS_CLEAR_BACKGROUND;
                 params.background_color = {0, 0, 0, 0};
                 params.renderer = self->cube->output->handle->renderer;
 

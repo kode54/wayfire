@@ -342,7 +342,7 @@ wf::buffer_reallocation_result_t wf::auxilliary_buffer_t::allocate(wf::dimension
     size.height = std::max(1.0f, std::ceil(size.height * scale));
     size = sanitize_buffer_size(size, max_buffer_size);
 
-    if (buffer.get_size() == size && current_hints == hints)
+    if ((buffer.get_size() == size) && (current_hints == hints))
     {
         return buffer_reallocation_result_t::SAME;
     }
@@ -375,7 +375,7 @@ wf::buffer_reallocation_result_t wf::auxilliary_buffer_t::allocate(wf::dimension
         return buffer_reallocation_result_t::FAILED;
     }
 
-    buffer.size = size;
+    buffer.size   = size;
     current_hints = hints;
     return buffer_reallocation_result_t::REALLOCATED;
 }

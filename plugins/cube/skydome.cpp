@@ -12,6 +12,29 @@
 #define SKYDOME_GRID_WIDTH 128
 #define SKYDOME_GRID_HEIGHT 128
 
+// Same as cube_fragment_2_0, but with an explicit sRGB -> linear conversion applied to the sampled
+// image. The skydome's background image is loaded by image_io::load_from_file, which produces an
+// sRGB-encoded RGBA8 texture. Cube now renders into an EXT_LINEAR-tagged intermediate, so writing
+// the raw sRGB sample would be interpreted as linear and double-encoded by wlroots' add_texture
+// path on the way to the output. The main cube-face shader (cube_fragment_2_0) keeps sampling
+// verbatim because it reads the per-workspace framebuffers, which are already linear.
+static const char *skydome_fragment_2_0 =
+    R"(#version 100
+varying highp vec2 uvpos;
+uniform sampler2D smp;
+
+highp vec3 srgb_to_linear(highp vec3 c) {
+    highp vec3 lo = c / 12.92;
+    highp vec3 hi = pow((c + 0.055) / 1.055, vec3(2.4));
+    bvec3 cutoff = lessThanEqual(c, vec3(0.04045));
+    return mix(hi, lo, vec3(cutoff));
+}
+
+void main() {
+    highp vec3 srgb = texture2D(smp, uvpos).xyz;
+    gl_FragColor = vec4(srgb_to_linear(srgb), 1);
+})";
+
 wf_cube_background_skydome::wf_cube_background_skydome(wf::output_t *output)
 {
     this->output = output;
@@ -35,7 +58,7 @@ void wf_cube_background_skydome::load_program()
 {
     wf::gles::run_in_context([&]
     {
-        program.set_simple(OpenGL::compile_program(cube_vertex_2_0, cube_fragment_2_0));
+        program.set_simple(OpenGL::compile_program(cube_vertex_2_0, skydome_fragment_2_0));
     });
 }
 

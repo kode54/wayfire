@@ -697,7 +697,7 @@ class render_pass_t
     template<class F>
     bool custom_gles_subpass(const wf::render_target_t& target, F&& fn)
     {
-        if (prepare_gles_subpass())
+        if (prepare_gles_subpass(target))
         {
             fn();
             finish_gles_subpass();

@@ -406,6 +406,17 @@ class wf::scene::wlr_surface_node_t::wlr_surface_render_instance_t : public rend
             return direct_scanout::OCCLUSION;
         }
 
+        // Direct scanout commits the surface buffer straight to the primary plane. With
+        // buffer_scale != 1 the buffer's pixel dimensions don't match the surface's logical
+        // size, and downstream (wlroots backend / KMS plane source rectangle) handling of
+        // that mismatch has been observed to mis-display the buffer (e.g. only the top-left
+        // logical-sized region of the buffer reaches the screen). Fall back to compositing
+        // in that case — the renderer correctly samples the buffer.
+        if (wlr_surf->current.scale != 1)
+        {
+            return direct_scanout::OCCLUSION;
+        }
+
         // Finally, the opaque region must be the full surface.
         wf::region_t non_opaque = output->get_relative_geometry();
         non_opaque ^= wf::region_t{&wlr_surf->opaque_region};

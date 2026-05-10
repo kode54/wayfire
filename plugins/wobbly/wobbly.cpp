@@ -990,9 +990,18 @@ class wobbly_render_instance_t :
         wobbly_graphics::prepare_geometry(self->model.get(), subbox, vert, uv);
         const int count_triangles = self->model->x_cells * self->model->y_cells * 2;
 
+        // Skip the zero-copy fast path that the base get_texture() would otherwise take. wobbly's
+        // fragment shader samples the source verbatim with no transfer-function handling, while the
+        // GLES2 two-pass pipeline expects linear values in the bound FBO. Routing through
+        // inner_content forces the children to render via wlr_render_pass_add_texture, which applies
+        // the per-source srgb_to_linear (or pq_to_linear, etc.) before landing in the buffer. The
+        // texture wobbly samples then matches what the linear output FBO is expecting.
+        auto source = self->get_updated_contents(self->get_children_bounding_box(),
+            data.target.scale, this->children, this->_shown_on);
+
         data.pass->custom_gles_subpass(data.target, [&]
         {
-            auto tex = wf::gles_texture_t{this->get_texture(data.target.scale)};
+            auto tex = wf::gles_texture_t{source};
             wf::gles::bind_render_buffer(data.target);
             for (auto box : data.damage)
             {
@@ -1023,7 +1032,7 @@ class wobbly_render_instance_t :
             auto buffer = find_buffer(state.get_context(), total_size);
             buffer->write(unified_buffer.data(), total_size);
 
-            auto texture  = get_texture(data.target.scale);
+            auto texture  = source;
             auto tex_dset = state.get_descriptor_pool()->get_descriptor_set(cmd_buf, texture);
             wf::vk::texture_sampling_params_t sampling{texture};
 

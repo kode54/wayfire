@@ -287,9 +287,17 @@ class view_2d_render_instance_t :
 
         auto flat_transform = translate * rotate * scale * center_at;
 
+        // Skip the zero-copy fast path that the base get_texture() would otherwise take. The default
+        // OpenGL::render_transformed_texture shader samples the source verbatim with no
+        // transfer-function handling, while the GLES2 two-pass pipeline expects linear values in the
+        // bound FBO. Routing through inner_content forces the children to render via
+        // wlr_render_pass_add_texture, which applies the per-source EOTF before storing.
+        auto source = self->get_updated_contents(self->get_children_bounding_box(),
+            data.target.scale, this->children, this->_shown_on);
+
         data.pass->custom_gles_subpass([&]
         {
-            auto tex = wf::gles_texture_t{this->get_texture(data.target.scale)};
+            auto tex = wf::gles_texture_t{source};
             wf::gles::bind_render_buffer(data.target);
             auto ortho = wf::gles::render_target_orthographic_projection(data.target);
 
@@ -306,7 +314,7 @@ class view_2d_render_instance_t :
         data.pass->custom_vulkan_subpass([&] (wf::vulkan_render_state_t& state, vk::command_buffer_t& cmd_buf)
         {
             auto& vk_state = vk::core_ensure_vk(state);
-            auto texture   = get_texture(data.target.scale);
+            auto texture   = source;
             auto tex_dset  = state.get_descriptor_pool()->get_descriptor_set(cmd_buf, texture);
             wf::vk::texture_sampling_params_t sampling{texture};
             wf::vk::pipeline_specialization_t specialization{};
@@ -540,9 +548,17 @@ class view_3d_render_instance_t :
         transform =
             wf::gles::render_target_gl_to_framebuffer(data.target) * scale * translate * transform;
 
+        // Skip the zero-copy fast path that the base get_texture() would otherwise take. The default
+        // OpenGL::render_transformed_texture shader samples the source verbatim with no
+        // transfer-function handling, while the GLES2 two-pass pipeline expects linear values in the
+        // bound FBO. Routing through inner_content forces the children to render via
+        // wlr_render_pass_add_texture, which applies the per-source EOTF before storing.
+        auto source = self->get_updated_contents(self->get_children_bounding_box(),
+            data.target.scale, this->children, this->_shown_on);
+
         data.pass->custom_gles_subpass([&]
         {
-            auto tex = wf::gles_texture_t{get_texture(data.target.scale)};
+            auto tex = wf::gles_texture_t{source};
             wf::gles::bind_render_buffer(data.target);
             for (auto& box : data.damage)
             {
@@ -556,7 +572,7 @@ class view_3d_render_instance_t :
         data.pass->custom_vulkan_subpass([&] (wf::vulkan_render_state_t& state, vk::command_buffer_t& cmd_buf)
         {
             auto& vk_state = vk::core_ensure_vk(state);
-            auto texture   = get_texture(data.target.scale);
+            auto texture   = source;
             auto tex_dset  = state.get_descriptor_pool()->get_descriptor_set(cmd_buf, texture);
             wf::vk::texture_sampling_params_t sampling{texture};
             wf::vk::pipeline_specialization_t specialization{};

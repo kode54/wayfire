@@ -257,6 +257,16 @@ struct buffer_allocation_hints_t
      * if no FP16 format is available.
      */
     bool hdr_linear = false;
+
+    bool operator ==(const buffer_allocation_hints_t& other) const
+    {
+        return needs_alpha == other.needs_alpha && hdr_linear == other.hdr_linear;
+    }
+
+    bool operator !=(const buffer_allocation_hints_t& other) const
+    {
+        return !(*this == other);
+    }
 };
 
 /**
@@ -335,6 +345,11 @@ struct auxilliary_buffer_t
 
     // The wlr_texture creating from this framebuffer.
     wlr_texture *texture = NULL;
+
+    // The hints used at the last successful allocation. allocate() compares against this so a
+    // change that affects format selection (e.g. toggling hdr_linear when HDR is turned on at
+    // runtime) forces a reallocation even when the requested size is unchanged.
+    buffer_allocation_hints_t current_hints = {};
 };
 
 /**

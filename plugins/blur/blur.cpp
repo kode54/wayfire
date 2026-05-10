@@ -174,7 +174,15 @@ class blur_render_instance_t : public transformer_render_instance_t<blur_node_t>
         // Nodes below should re-render the padded areas so that we can sample from them
         damage |= padded_region;
 
-        saved_pixels->pixels.allocate(target.get_size());
+        // saved_pixels is filled by glBlitFramebuffer'ing target's bound FBO. With wlroots GLES2's
+        // linear two-pass pipeline that source FBO is FP16 — PQ-linear on HDR outputs, where HDR
+        // window content reaches values > 1.0. An 8-bit RGBA backing would clamp those to 1.0 (peak
+        // HDR white) and then blit-back would deposit stark white over the padded regions. Mirror
+        // the source format on HDR by hinting hdr_linear so the saved_pixels buffer is FP16 too.
+        const bool target_is_hdr = target.get_output_transfer_function() ==
+            WLR_COLOR_TRANSFER_FUNCTION_ST2084_PQ;
+        saved_pixels->pixels.allocate(target.get_size(), 1.0f,
+            wf::buffer_allocation_hints_t{.hdr_linear = target_is_hdr});
 
         wf::gles::run_in_context_if_gles([&]
         {

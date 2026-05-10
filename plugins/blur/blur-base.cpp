@@ -35,6 +35,7 @@ precision highp float;
 
 @builtin@
 uniform float sat;
+uniform float luminance_multiplier;
 uniform sampler2D bg_texture;
 
 varying highp vec2 uvpos[2];
@@ -52,6 +53,9 @@ void main()
     vec4 bp = texture2D(bg_texture, uvpos[1]);
     bp = vec4(saturation(bp.rgb, sat), bp.a);
     vec4 wp = get_pixel(uvpos[0]);
+    // wp comes from inner_content in EXT_LINEAR (SDR-relative) space; bp comes from the target FBO
+    // which is PQ-linear on HDR outputs. Bring wp into the same domain as bp before blending.
+    wp.rgb *= luminance_multiplier;
     vec4 c = clamp(4.0 * wp.a, 0.0, 1.0) * bp;
     gl_FragColor = wp + (1.0 - wp.a) * c;
 })";
@@ -277,6 +281,10 @@ void wf_blur_base::render(wf::gles_texture_t src_tex, wlr_box src_box, const wf:
     /* XXX: core should give us the number of texture units used */
     blend_program.uniform1i("bg_texture", 1);
     blend_program.uniform1f("sat", saturation_opt);
+    // Bridge SDR-relative linear (src_tex / inner_content) into the target's domain. On HDR outputs
+    // the bound FBO is PQ-linear; on SDR the multiplier is 1.0 so this is a no-op.
+    blend_program.uniform1f("luminance_multiplier", wf::compute_luminance_multiplier(
+        WLR_COLOR_TRANSFER_FUNCTION_EXT_LINEAR, target_fb.get_output_transfer_function()));
 
     blend_program.set_active_texture(src_tex);
     GL_CALL(glActiveTexture(GL_TEXTURE0 + 1));

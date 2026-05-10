@@ -1,6 +1,6 @@
 #pragma once
 
-static const char* cube_vertex_2_0 =
+[[maybe_unused]] static const char* cube_vertex_2_0 =
 R"(#version 100
 attribute highp vec3 position;
 attribute highp vec2 uvPosition;
@@ -15,7 +15,7 @@ void main() {
     uvpos = uvPosition;
 })";
 
-static const char* cube_fragment_2_0 =
+[[maybe_unused]] static const char* cube_fragment_2_0 =
 R"(#version 100
 varying highp vec2 uvpos;
 uniform sampler2D smp;

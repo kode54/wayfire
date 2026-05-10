@@ -295,6 +295,12 @@ class view_2d_render_instance_t :
         auto source = self->get_updated_contents(self->get_children_bounding_box(),
             data.target.scale, this->children, this->_shown_on);
 
+        // inner_content is EXT_LINEAR (SDR-relative); the bound FBO is PQ-linear on HDR outputs.
+        // Bridge the domains in the default shader since we bypass wlr_render_pass_add_texture.
+        const float multiplier = wf::compute_luminance_multiplier(
+            WLR_COLOR_TRANSFER_FUNCTION_EXT_LINEAR,
+            data.target.get_output_transfer_function());
+
         data.pass->custom_gles_subpass([&]
         {
             auto tex = wf::gles_texture_t{source};
@@ -306,7 +312,7 @@ class view_2d_render_instance_t :
                 wf::gles::render_target_logic_scissor(data.target, wlr_box_from_pixman_box(box));
                 // OpenGL::clear({1, 0, 0, 1});
                 OpenGL::render_transformed_texture(tex, bbox, ortho * flat_transform,
-                    glm::vec4{1.0, 1.0, 1.0, self->get_alpha()});
+                    glm::vec4{1.0, 1.0, 1.0, self->get_alpha()}, 0, multiplier);
             }
         });
 
@@ -556,6 +562,12 @@ class view_3d_render_instance_t :
         auto source = self->get_updated_contents(self->get_children_bounding_box(),
             data.target.scale, this->children, this->_shown_on);
 
+        // inner_content is EXT_LINEAR (SDR-relative); the bound FBO is PQ-linear on HDR outputs.
+        // Bridge the domains in the default shader since we bypass wlr_render_pass_add_texture.
+        const float multiplier = wf::compute_luminance_multiplier(
+            WLR_COLOR_TRANSFER_FUNCTION_EXT_LINEAR,
+            data.target.get_output_transfer_function());
+
         data.pass->custom_gles_subpass([&]
         {
             auto tex = wf::gles_texture_t{source};
@@ -564,7 +576,7 @@ class view_3d_render_instance_t :
             {
                 wf::gles::render_target_logic_scissor(data.target, wlr_box_from_pixman_box(box));
                 OpenGL::render_transformed_texture(tex, quad.geometry, {},
-                    transform, self->color);
+                    transform, self->color, 0, multiplier);
             }
         });
 

@@ -47,11 +47,13 @@ const char *frag_source =
 @builtin_ext@
 
 varying highp vec2 uvpos;
+uniform highp float luminance_multiplier;
 @builtin@
 
 void main()
 {
-    gl_FragColor = get_pixel(uvpos);
+    highp vec4 c = get_pixel(uvpos);
+    gl_FragColor = vec4(c.rgb * luminance_multiplier, c.a);
 }
 )";
 }
@@ -112,8 +114,7 @@ void prepare_geometry(wobbly_surface *model, wf::geometry_t src_box,
 
 /* Requires bound opengl context */
 void render_triangles(OpenGL::program_t *program, wf::gles_texture_t tex, glm::mat4 mat, float *pos,
-    float *uv,
-    int cnt)
+    float *uv, int cnt, float luminance_multiplier)
 {
     program->use(tex.type);
     program->set_active_texture(tex);
@@ -121,6 +122,7 @@ void render_triangles(OpenGL::program_t *program, wf::gles_texture_t tex, glm::m
     program->attrib_pointer("position", 2, 0, pos);
     program->attrib_pointer("uvPosition", 2, 0, uv);
     program->uniformMatrix4f("MVP", mat);
+    program->uniform1f("luminance_multiplier", luminance_multiplier);
 
     GL_CALL(glEnable(GL_BLEND));
     GL_CALL(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
@@ -999,6 +1001,14 @@ class wobbly_render_instance_t :
         auto source = self->get_updated_contents(self->get_children_bounding_box(),
             data.target.scale, this->children, this->_shown_on);
 
+        // inner_content stores SDR-relative linear values (1.0 = SDR reference white). On HDR
+        // outputs, the bound FBO is PQ-linear (1.0 = peak HDR white), so wobbly's shader has to
+        // bridge the domains itself — wlr_render_pass_add_texture would have applied this
+        // automatically, but custom_gles_subpass bypasses that path.
+        const float multiplier = wf::compute_luminance_multiplier(
+            WLR_COLOR_TRANSFER_FUNCTION_EXT_LINEAR,
+            data.target.get_output_transfer_function());
+
         data.pass->custom_gles_subpass(data.target, [&]
         {
             auto tex = wf::gles_texture_t{source};
@@ -1008,7 +1018,7 @@ class wobbly_render_instance_t :
                 wf::gles::render_target_logic_scissor(data.target, wlr_box_from_pixman_box(box));
                 wobbly_graphics::render_triangles(self->wobbly_program, tex,
                     wf::gles::render_target_orthographic_projection(data.target),
-                    vert.data(), uv.data(), count_triangles);
+                    vert.data(), uv.data(), count_triangles, multiplier);
             }
         });
 

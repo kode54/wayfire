@@ -157,7 +157,7 @@ std::vector<GLfloat> coordData;
 
 void render_transformed_texture(wf::gles_texture_t tex,
     const gl_geometry& g, const gl_geometry& texg,
-    glm::mat4 model, glm::vec4 color, uint32_t bits)
+    glm::mat4 model, glm::vec4 color, uint32_t bits, float luminance_multiplier)
 {
     // We don't expect any errors from us!
     disable_gl_call = true;
@@ -198,6 +198,7 @@ void render_transformed_texture(wf::gles_texture_t tex,
     program.attrib_pointer("uvPosition", 2, 0, coordData.data());
     program.uniformMatrix4f("MVP", model);
     program.uniform4f("color", color);
+    program.uniform1f("luminance_multiplier", luminance_multiplier);
 
     GL_CALL(glEnable(GL_BLEND));
     GL_CALL(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
@@ -224,7 +225,7 @@ void clear_cached()
 
 void render_transformed_texture(wf::gles_texture_t texture,
     const wf::geometry_t& geometry, glm::mat4 transform,
-    glm::vec4 color, uint32_t bits)
+    glm::vec4 color, uint32_t bits, float luminance_multiplier)
 {
     bits &= ~TEXTURE_USE_TEX_GEOMETRY;
 
@@ -233,7 +234,7 @@ void render_transformed_texture(wf::gles_texture_t texture,
     gg.y1 = geometry.y;
     gg.x2 = gg.x1 + geometry.width;
     gg.y2 = gg.y1 + geometry.height;
-    render_transformed_texture(texture, gg, {}, transform, color, bits);
+    render_transformed_texture(texture, gg, {}, transform, color, bits, luminance_multiplier);
 }
 
 void render_texture(wf::gles_texture_t texture,

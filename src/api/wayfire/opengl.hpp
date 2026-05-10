@@ -180,13 +180,20 @@ enum rendering_flags_t
  * @param transform The matrix transformation to apply to the quad.
  * @param color     A color multiplier for each channel of the texture.
  * @param bits      A bitwise OR of texture_rendering_flags_t.
+ * @param luminance_multiplier
+ *                  Scales the output RGB before write. Plumb this when sampling an
+ *                  EXT_LINEAR-tagged texture (e.g. inner_content) into a target whose bound FBO is
+ *                  PQ-linear (HDR output) — wf::compute_luminance_multiplier(EXT_LINEAR,
+ *                  data.target.get_output_transfer_function()) bridges the SDR-relative-linear and
+ *                  PQ-linear domains. Default 1.0 means no scaling.
  */
 void render_transformed_texture(wf::gles_texture_t texture,
     const gl_geometry& g,
     const gl_geometry& texg,
     glm::mat4 transform = glm::mat4(1.0),
     glm::vec4 color     = glm::vec4(1.f),
-    uint32_t bits = 0);
+    uint32_t bits = 0,
+    float luminance_multiplier = 1.0f);
 
 /**
  * Render a textured quad using the built-in shaders.
@@ -197,12 +204,14 @@ void render_transformed_texture(wf::gles_texture_t texture,
  * @param color     A color multiplier for each channel of the texture.
  * @param bits      A bitwise OR of texture_rendering_flags_t. In this variant,
  *                    TEX_GEOMETRY flag is ignored.
+ * @param luminance_multiplier  See the other render_transformed_texture overload.
  */
 void render_transformed_texture(wf::gles_texture_t texture,
     const wf::geometry_t& geometry,
     glm::mat4 transform = glm::mat4(1.0),
     glm::vec4 color     = glm::vec4(1.f),
-    uint32_t bits = 0);
+    uint32_t bits = 0,
+    float luminance_multiplier = 1.0f);
 
 /**
  * Render a textured quad on the given framebuffer.

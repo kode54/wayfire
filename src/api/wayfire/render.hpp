@@ -25,6 +25,28 @@ class command_buffer_t;
 }
 
 /**
+ * SDR reference white luminance in cd/m², used to bridge between [0,1]-relative SDR linear values
+ * and the absolute PQ luminance range. Matches BT.2408 ("graphics white") and the default used by
+ * KDE/GNOME for SDR-on-HDR compositing.
+ */
+constexpr float SDR_REFERENCE_WHITE_NITS = 203.0f;
+constexpr float PQ_MAX_NITS = 10000.0f;
+
+/**
+ * Compute the luminance multiplier needed when content tagged with @source_tf is composited into a
+ * target tagged with @target_tf. The wlroots renderer does no implicit luminance scaling: the
+ * forward EOTF for SDR transfer functions yields values in [0,1] relative to the SDR reference
+ * white, but the inverse EOTF for ST2084 PQ interprets [0,1] as 0–10000 cd/m² absolute. Without a
+ * correction, SDR content composited onto an HDR output would appear ~49.26x too bright.
+ *
+ * Plugins that bypass wlr_render_pass_add_texture (custom_gles_subpass + their own shaders) need
+ * to apply this multiplier themselves before writing to the output's linear FBO when the source is
+ * EXT_LINEAR-tagged inner_content (SDR-relative linear) and the output is PQ.
+ */
+float compute_luminance_multiplier(wlr_color_transfer_function source_tf,
+    wlr_color_transfer_function target_tf);
+
+/**
  * A struct which describes the color space of a given texture.
  */
 struct color_transform_t

@@ -19,12 +19,14 @@ R"(#version 100
 
 varying highp vec2 uvpos;
 uniform highp vec4 color;
+uniform highp float luminance_multiplier;
 
 void main()
 {
     highp vec4 tex_color = get_pixel(uvpos);
     tex_color.rgb = tex_color.rgb * color.a;
     gl_FragColor = tex_color * color;
+    gl_FragColor.rgb *= luminance_multiplier;
 })";
 
 static const char *color_rect_fragment_source =

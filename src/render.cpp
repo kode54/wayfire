@@ -7,26 +7,12 @@
 #include <cmath>
 #include <drm_fourcc.h>
 
-/**
- * SDR reference white luminance in cd/m², used when bridging between [0,1]-relative SDR linear
- * values and the absolute PQ luminance range. Matches BT.2408 ("graphics white") and the default
- * used by KDE/GNOME for SDR-on-HDR compositing.
- */
-constexpr float SDR_REFERENCE_WHITE_NITS = 203.0f;
-constexpr float PQ_MAX_NITS = 10000.0f;
-
 static bool is_hdr_transfer_function(wlr_color_transfer_function tf)
 {
     return tf == WLR_COLOR_TRANSFER_FUNCTION_ST2084_PQ;
 }
 
-/**
- * Compute the luminance multiplier needed when a texture with @source_tf is rendered to a target
- * with @target_tf. The wlroots renderer does no implicit luminance scaling between SDR and HDR
- * domains, so SDR content composited onto a PQ output (or vice-versa) needs an explicit factor
- * to bridge the [0,1]-relative SDR linear range and the 0–10000 cd/m² absolute PQ linear range.
- */
-static float compute_luminance_multiplier(wlr_color_transfer_function source_tf,
+float wf::compute_luminance_multiplier(wlr_color_transfer_function source_tf,
     wlr_color_transfer_function target_tf)
 {
     const bool source_pq = is_hdr_transfer_function(source_tf);
@@ -41,11 +27,11 @@ static float compute_luminance_multiplier(wlr_color_transfer_function source_tf,
     {
         // SDR source → HDR target: scale [0,1] relative down so 1.0 maps to the SDR
         // reference white in the PQ-relative range.
-        return SDR_REFERENCE_WHITE_NITS / PQ_MAX_NITS;
+        return wf::SDR_REFERENCE_WHITE_NITS / wf::PQ_MAX_NITS;
     }
 
     // HDR source → SDR target: scale up so the SDR reference luminance maps to 1.0.
-    return PQ_MAX_NITS / SDR_REFERENCE_WHITE_NITS;
+    return wf::PQ_MAX_NITS / wf::SDR_REFERENCE_WHITE_NITS;
 }
 
 static float float_max(float a, float b)
@@ -82,7 +68,7 @@ static wlr_render_color color_to_render_color(const wf::color_t& color,
         };
     }
 
-    const float scale = SDR_REFERENCE_WHITE_NITS / PQ_MAX_NITS;
+    const float scale = wf::SDR_REFERENCE_WHITE_NITS / wf::PQ_MAX_NITS;
     const float alpha = static_cast<float>(color.a);
     return wlr_render_color{
         .r = linear_to_gamma22(gamma22_to_linear(static_cast<float>(color.r) / alpha) * scale) * alpha,

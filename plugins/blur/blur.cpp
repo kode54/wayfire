@@ -205,9 +205,18 @@ class blur_render_instance_t : public transformer_render_instance_t<blur_node_t>
     void render(const wf::scene::render_instruction_t& data) override
     {
         auto bounding_box = self->get_bounding_box();
+
+        // Skip the zero-copy fast path that the base get_texture() would otherwise take. The blur
+        // provider's blend shader samples the source verbatim with no transfer-function handling,
+        // while the GLES2 two-pass pipeline expects linear values in the bound FBO. Routing through
+        // inner_content forces the children to render via wlr_render_pass_add_texture, which applies
+        // the per-source srgb_to_linear (or pq_to_linear, etc.) before storing.
+        auto source = self->get_updated_contents(self->get_children_bounding_box(),
+            data.target.scale, this->children, this->_shown_on);
+
         data.pass->custom_gles_subpass([&]
         {
-            auto tex = wf::gles_texture_t{get_texture(data.target.scale)};
+            auto tex = wf::gles_texture_t{source};
             if (!data.damage.empty())
             {
                 auto translucent_damage = calculate_translucent_damage(data.target, data.damage);

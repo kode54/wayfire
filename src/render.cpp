@@ -228,6 +228,7 @@ wf::auxilliary_buffer_t& wf::auxilliary_buffer_t::operator =(auxilliary_buffer_t
 
     this->texture = std::exchange(other.texture, nullptr);
     this->buffer  = std::exchange(other.buffer, {});
+    this->current_hints = std::exchange(other.current_hints, {});
     return *this;
 }
 
@@ -356,7 +357,7 @@ wf::buffer_reallocation_result_t wf::auxilliary_buffer_t::allocate(wf::dimension
     size.height = std::max(1.0f, std::ceil(size.height * scale));
     size = sanitize_buffer_size(size, max_buffer_size);
 
-    if (buffer.get_size() == size)
+    if (buffer.get_size() == size && current_hints == hints)
     {
         return buffer_reallocation_result_t::SAME;
     }
@@ -390,6 +391,7 @@ wf::buffer_reallocation_result_t wf::auxilliary_buffer_t::allocate(wf::dimension
     }
 
     buffer.size = size;
+    current_hints = hints;
     return buffer_reallocation_result_t::REALLOCATED;
 }
 
@@ -409,6 +411,7 @@ void wf::auxilliary_buffer_t::free()
 
     buffer.buffer = NULL;
     buffer.size   = {0, 0};
+    current_hints = {};
 }
 
 wlr_buffer*wf::auxilliary_buffer_t::get_buffer() const

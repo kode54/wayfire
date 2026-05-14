@@ -1138,12 +1138,6 @@ class wf::render_manager::impl
         render_pass_params_t params;
         params.instances = &damage_manager->instance_manager->get_instances();
 
-        // Render directly to the output target. wlroots' Vulkan renderer already runs a
-        // two-pass pipeline internally — it composites every add_texture into an FP16
-        // linear blend image and applies the inverse-EOTF (or ICC LUT) selected by
-        // pass_opts.color_transform when writing to the output buffer. The target's
-        // transfer function only drives the per-source luminance multiplier in
-        // render_pass_t::add_texture (e.g. 0.0203 for SDR-into-PQ).
         params.target = postprocessing->get_target_framebuffer().translated(
             wf::origin(output->get_layout_geometry()));
         params.target.set_color_transform(get_color_transform(), get_output_transfer_function());

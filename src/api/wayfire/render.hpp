@@ -19,6 +19,19 @@ namespace wf
 {
 class output_t;
 struct auxilliary_buffer_t;
+
+/**
+ * Check whether @output is currently driving an HDR (ST2084 PQ) image description.
+ *
+ * Plugins keep their linear-space auxilliary buffers in the SDR-relative linear domain
+ * (target_tf == EXT_LINEAR). On HDR (PQ) outputs, HDR sources contribute SDR-relative linear
+ * values up to ~49.26 (PQ peak / SDR reference white), which would be clipped or quantized by
+ * an 8-bit linear backing. Plugins use this hint to request FP16 storage
+ * (@buffer_allocation_hints_t::hdr_linear) for such intermediates.
+ *
+ * Returns false when @output is NULL or when no image description has been negotiated.
+ */
+bool is_output_hdr(output_t *output);
 namespace vk
 {
 class command_buffer_t;

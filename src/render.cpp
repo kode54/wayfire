@@ -3,6 +3,7 @@
 #include "wayfire/dassert.hpp"
 #include "wayfire/nonstd/reverse.hpp"
 #include "wayfire/opengl.hpp"
+#include "wayfire/output.hpp"
 #include <wayfire/scene-render.hpp>
 #include <cmath>
 #include <drm_fourcc.h>
@@ -18,6 +19,17 @@ constexpr float PQ_MAX_NITS = 10000.0f;
 static bool is_hdr_transfer_function(wlr_color_transfer_function tf)
 {
     return tf == WLR_COLOR_TRANSFER_FUNCTION_ST2084_PQ;
+}
+
+bool wf::is_output_hdr(wf::output_t *output)
+{
+    if (!output)
+    {
+        return false;
+    }
+
+    const auto *img_desc = output->handle->image_description;
+    return img_desc && is_hdr_transfer_function(img_desc->transfer_function);
 }
 
 /**

@@ -48,25 +48,14 @@ static float compute_luminance_multiplier(wlr_color_transfer_function source_tf,
     return PQ_MAX_NITS / SDR_REFERENCE_WHITE_NITS;
 }
 
-static float float_max(float a, float b)
-{
-    if (a > b)
-    {
-        return a;
-    } else
-    {
-        return b;
-    }
-}
-
 static float gamma22_to_linear(float c)
 {
-    return pow(float_max(c, 0.0), 2.2);
+    return powf(std::max(c, 0.0f), 2.2f);
 }
 
 static float linear_to_gamma22(float c)
 {
-    return pow(float_max(c, 0.0), (1.0 / 2.2));
+    return powf(std::max(c, 0.0f), (1.0f / 2.2f));
 }
 
 static wlr_render_color color_to_render_color(const wf::color_t& color,
